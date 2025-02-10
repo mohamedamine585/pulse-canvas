@@ -26,17 +26,30 @@ package com.pulse.canvas.Interceptors;
 
                                 try {
                                     // Extract the user token from the SecurityContext
-                                    String token = Objects.requireNonNull(request.getHeaders().get("Authorization")).get(0).substring(7);
-                                    System.out.println(token);
-                                    attributes.put("username", jwtHelper.extractUsername(token));
+                                    String query = request.getURI().getQuery();
+                                    String token = null;
+                                    String[] params = query.split("&");
+                                    for (String param : params) {
+                                        String[] keyValue = param.split("=");
+                                        if (keyValue.length == 2 && keyValue[0].equals("token")) {
+                                            token = keyValue[1];// Extract token value as String
+                                            break;
+                                        }
+                                    }
+
+                                    if (token != null) {
+                                        System.out.println(token);
+                                        attributes.put("username", jwtHelper.extractUsername(token));
+                                    } else {
+                                        throw new IllegalArgumentException("Token parameter not found in query string");
+                                    }
 
                                     // Extract query parameters from the WebSocket handshake request URL
                                     URI uri = request.getURI();
-                                    String query = uri.getQuery(); // Get the full query string
+
 
                                     // Parse individual query parameters (e.g., canvasId)
                                     String canvasIdStr = null;
-                                    String[] params = query.split("&");
                                     for (String param : params) {
                                         String[] keyValue = param.split("=");
                                         if (keyValue.length == 2 && keyValue[0].equals("canvasId")) {

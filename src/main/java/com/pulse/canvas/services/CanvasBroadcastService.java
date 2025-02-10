@@ -1,5 +1,6 @@
 package com.pulse.canvas.services;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
 import com.pulse.canvas.Repositories.ArtistRepository;
@@ -122,9 +123,20 @@ public class CanvasBroadcastService {
 
     public void broadcastCanvasPrint(Long canvasId) throws IOException {
         CanvasPrintDTO canvasPrint = canvasPrints.get(canvasId);
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> jsonMessage = new HashMap<>();
+        jsonMessage.put("message", "New CanvasPrint");
+        // Convert byte[] to List<Byte>
+        List<Integer> byteList = new ArrayList<>();
+        for (byte b : canvasPrint.getPrint()) {
+            byteList.add((int) b & 0xFF);  // Convert to unsigned int (0-255)
+        }
+        jsonMessage.put("print", byteList);
+
+        String jsonString = objectMapper.writeValueAsString(jsonMessage);
         for (WebSocketSession session : canvasSessions.get(canvasPrint.getCanvasId())) {
             if (session.isOpen()) {
-                session.sendMessage(new TextMessage("New CanvasPrint: " + Arrays.toString(canvasPrint.getPrint())));
+                session.sendMessage(new TextMessage(jsonString));
             }
         }
     }
