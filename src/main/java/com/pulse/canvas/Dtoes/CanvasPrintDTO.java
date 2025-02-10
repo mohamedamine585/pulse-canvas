@@ -12,7 +12,21 @@ import lombok.NoArgsConstructor;
 public class CanvasPrintDTO {
 
     Long canvasId ;
+    Long printId;
     byte[] print;
+
+    public CanvasPrintDTO(Long canvasId, Long id, byte[] print) {
+        this.canvasId = canvasId;
+        this.printId = id;
+        this.print = print;
+    }
+    public Long getPrintId() {
+        return printId;
+    }
+
+    public void setPrintId(Long printId) {
+        this.printId = printId;
+    }
 
     public Long getCanvasId() {
         return canvasId;
