@@ -5,20 +5,25 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class CanvasPrintDTO {
 
     Long canvasId ;
     Long printId;
-    byte[] print;
+    ConcurrentHashMap<Integer,Integer> print;
 
-    public CanvasPrintDTO(Long canvasId, Long id, byte[] print) {
+    public CanvasPrintDTO(Long canvasId, Long id, ConcurrentHashMap<Integer,Integer> print) {
         this.canvasId = canvasId;
         this.printId = id;
-        this.print = print;
+        if(print == null){
+            this.print = new ConcurrentHashMap<>();
+        }else{
+            this.print = print;
+        }
     }
     public Long getPrintId() {
         return printId;
@@ -32,7 +37,7 @@ public class CanvasPrintDTO {
         return canvasId;
     }
 
-    public byte[] getPrint() {
+    public ConcurrentHashMap<Integer, Integer> getPrint() {
         return print;
     }
 
@@ -40,7 +45,7 @@ public class CanvasPrintDTO {
         this.canvasId = canvasId;
     }
 
-    public void setPrint(byte[] print) {
+    public void setPrint(ConcurrentHashMap<Integer,Integer> print) {
         this.print = print;
     }
 }

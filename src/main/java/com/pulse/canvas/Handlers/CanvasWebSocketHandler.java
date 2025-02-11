@@ -33,11 +33,11 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             ObjectMapper objectMapper = new ObjectMapper();
             DrawEvent drawEvent = objectMapper.readValue(payload, DrawEvent.class);
 
-            System.out.println("Received draw event for canvas " + drawEvent.getCanvasId());
+            System.out.println("Received draw event for canvas " + session.getAttributes().get("canvasId"));
 
 
             // TODO : PROCESS DRAW EVENT
-            canvasBroadcastService.processUpdate(drawEvent);
+            canvasBroadcastService.processUpdate(drawEvent,(Long) session.getAttributes().get("canvasId"));
         }catch (Exception e){
             e.printStackTrace();
         }

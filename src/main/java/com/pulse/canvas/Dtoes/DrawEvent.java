@@ -8,32 +8,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DrawEvent {
-    private Long canvasId;
-    private int[] pixelsPositions;       // Representing the pixels as an int array
-    private byte[] pixelsEdits; // Representing the edits as a byte array
+    private Integer[] pixelsPositions;       // Representing the pixels as an int array
+    private Integer[] pixelsEdits; // Representing the edits as a byte array
 
-    // Getters and setters
-    public Long getCanvasId() {
-        return canvasId;
-    }
 
-    public void setCanvasId(Long canvasId) {
-        this.canvasId = canvasId;
-    }
-
-    public byte[] getPixelsEdits() {
+    public Integer[] getPixelsEdits() {
         return pixelsEdits;
     }
 
-    public void setPixelsEdits(byte[] pixelsEdits) {
+    public void setPixelsEdits(Integer[] pixelsEdits) {
         this.pixelsEdits = pixelsEdits;
     }
 
-    public void setPixelsPositions(int[] pixelsPositions) {
+    public void setPixelsPositions(Integer[] pixelsPositions) {
         this.pixelsPositions = pixelsPositions;
     }
 
-    public int[] getPixelsPositions() {
+    public Integer[] getPixelsPositions() {
         return pixelsPositions;
     }
 }
