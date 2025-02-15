@@ -14,9 +14,9 @@ public class CanvasPrintDTO {
 
     Long canvasId ;
     Long printId;
-    ConcurrentHashMap<Integer,Integer> print;
+    ConcurrentHashMap<Long,Long> print;
 
-    public CanvasPrintDTO(Long canvasId, Long id, ConcurrentHashMap<Integer,Integer> print) {
+    public CanvasPrintDTO(Long canvasId, Long id, ConcurrentHashMap<Long,Long> print) {
         this.canvasId = canvasId;
         this.printId = id;
         if(print == null){
@@ -37,7 +37,7 @@ public class CanvasPrintDTO {
         return canvasId;
     }
 
-    public ConcurrentHashMap<Integer, Integer> getPrint() {
+    public ConcurrentHashMap<Long, Long> getPrint() {
         return print;
     }
 
@@ -45,7 +45,7 @@ public class CanvasPrintDTO {
         this.canvasId = canvasId;
     }
 
-    public void setPrint(ConcurrentHashMap<Integer,Integer> print) {
+    public void setPrint(ConcurrentHashMap<Long,Long> print) {
         this.print = print;
     }
 }

@@ -47,7 +47,7 @@ public class CanvasBroadcastService {
           // TODO : DEFINE GLOBAL VARIABLES
 
             Long canvasPrintId = null ;
-            ConcurrentHashMap<Integer,Integer> print = null;
+            ConcurrentHashMap<Long,Long> print = null;
 
             // TODO : SETUP PARAMETERS FROM SESSION
             Map<String, Object> map = new HashMap<>();
@@ -98,6 +98,8 @@ public class CanvasBroadcastService {
 
 
             // TODO : add client session
+            session.setBinaryMessageSizeLimit(1024*1024 * 10);
+            session.setTextMessageSizeLimit(1024*1024 * 10);
             canvasSessions.computeIfAbsent(canvasId, k -> new CopyOnWriteArraySet<>()).add(session);
 
             // TODO : init canvasPrint if absent
@@ -135,19 +137,21 @@ public class CanvasBroadcastService {
             // Convert byte[] to List<Byte>
             // Convert to unsigned int (0-255)
 
-            List<Integer> printPixels = new ArrayList<>(canvasPrint.getPrint().values());
+            List<Long> printPixels = new ArrayList<>(canvasPrint.getPrint().values());
             jsonMessage.put("values", printPixels);
-            List<Integer> posPixels = new ArrayList<>(canvasPrint.getPrint().keySet());
+            List<Long> posPixels = new ArrayList<>(canvasPrint.getPrint().keySet());
             jsonMessage.put("positions",posPixels);
+            jsonMessage.put("size",posPixels.size());
             String jsonString = objectMapper.writeValueAsString(jsonMessage);
             System.out.println("Broadcast");
             for (WebSocketSession session : canvasSessions.get(canvasPrint.getCanvasId())) {
+
                 if (session.isOpen()) {
                     session.sendMessage(new TextMessage(jsonString));
                 }
             }
         }catch (Exception e){
-            System.out.println(e);
+            e.printStackTrace();
         }
 
     }
@@ -157,15 +161,16 @@ public class CanvasBroadcastService {
 
         try {
 
-            int biggestPost = 0;
+            long biggestPost = 0;
 
 
                     // TODO : UPDATE SERVER STATE
 
                     CanvasPrintDTO canvasPrintDTO = canvasPrints.get(canvasId);
-                    ConcurrentHashMap<Integer,Integer> print = canvasPrintDTO.getPrint();
-                    Integer[] pixelsEdits = drawEvent.getPixelsEdits();
-                    Integer[] pixelsPositions = drawEvent.getPixelsPositions();
+                    ConcurrentHashMap<Long,Long> print = canvasPrintDTO.getPrint();
+                    Long[] pixelsEdits = drawEvent.getPixelsEdits();
+                    Long[] pixelsPositions = drawEvent.getPixelsPositions();
+
 
                     if(pixelsPositions.length != pixelsEdits.length){
                         throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
@@ -181,16 +186,12 @@ public class CanvasBroadcastService {
                         if(pixelsPositions[i] < 0){
                             throw new Exception("Invalid DrawEvent: pixelsPositions must be within the bounds of the canvas");
                         }
-                        if(pixelsEdits[i] < 0 || pixelsEdits[i] > 255){
-                            throw new Exception("Invalid DrawEvent: pixelsEdits must be within the bounds of a byte");
-                        }
-
                         // TODO : to check the byte array
                       /*  if(print[i] != 255){
                             throw new Exception("Invalid DrawEvent: pixel at position " + pixelsPositions[i] + " is already colored");
                         }*/
 
-                        if(!Objects.equals(print.get(i), pixelsEdits[i])) {
+                        if(!Objects.equals(print.get(pixelsPositions[i]), pixelsEdits[i])) {
                             print.put(pixelsPositions[i] , pixelsEdits[i]);
                             if(pixelsPositions[i] > biggestPost){
                                 biggestPost = pixelsPositions[i];
@@ -199,7 +200,7 @@ public class CanvasBroadcastService {
                     }
                     canvasPrintDTO.setPrint(print);
                     canvasPrints.put(canvasPrintDTO.getCanvasId(),canvasPrintDTO);
-
+/*
             // TODO : UPDATE BD STATE
 
             CanvasPrint canvasPrint = this.canvasPrintRepository.findByCanvasId(canvasId);
@@ -207,21 +208,16 @@ public class CanvasBroadcastService {
 
             byte[] byteArray = new byte[biggestPost + 1];
             for (int i = 0; i < pixelsPositions.length; i++) {
-                byteArray[pixelsPositions[i]] = pixelsEdits[i].byteValue();
+                if(pixelsPositions[i] < byteArray.length){
+                    byteArray[pixelsPositions[i]] = pixelsEdits[i].byteValue();
+
+                }
             }
             canvasPrint.setPrint(byteArray);
             ;
 
            canvasPrint = this.canvasPrintRepository.save(canvasPrint);
-
-            for (byte b : canvasPrint.getPrint()) {
-                System.out.println(b);
-            }
-
-
-
-
-
+*/
             // TODO : BROADCAST TO CLIENTS
                     broadcastCanvasPrint(canvasPrintDTO.getCanvasId());
 
