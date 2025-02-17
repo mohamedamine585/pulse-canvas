@@ -10,7 +10,15 @@ import lombok.NoArgsConstructor;
 public class DrawEvent {
     private Long[] pixelsPositions;       // Representing the pixels as an int array
     private Long[] pixelsEdits; // Representing the edits as a byte array
+    private String sessionId;
 
+    public String getSessionId() {
+        return sessionId;
+    }
+
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
+    }
 
     public Long[] getPixelsEdits() {
         return pixelsEdits;

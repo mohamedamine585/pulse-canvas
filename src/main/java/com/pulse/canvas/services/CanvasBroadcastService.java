@@ -112,7 +112,18 @@ public class CanvasBroadcastService {
             print  = canvasPrintDTO.getPrint();
 
 
-            broadcastCanvasPrint(canvasId,new ArrayList<>(print.keySet()),new ArrayList<>(print.values()));
+            broadcastCanvasPrint(canvasId,session.getId(),new ArrayList<>(print.keySet()),new ArrayList<>(print.values()));
+
+
+            // TODO : Send session ID
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, Object> jsonMessage = new HashMap<>();
+            jsonMessage.put("sessionId",session.getId());
+            jsonMessage.put("message","hello");
+            String jsonString = objectMapper.writeValueAsString(jsonMessage);
+
+            session.sendMessage(new TextMessage(jsonString));
         }catch (Exception e) {
             e.printStackTrace();
             session.sendMessage(new TextMessage("Error creating session"));
@@ -127,7 +138,7 @@ public class CanvasBroadcastService {
         System.out.println("Client disconnected: " + session.getId());
     }
 
-    public void broadcastCanvasPrint(Long canvasId,List<Long> updatedPixelsPos , List<Long> updatedPixelsEdits) throws IOException {
+    public void broadcastCanvasPrint(Long canvasId,String sessionId,List<Long> updatedPixelsPos , List<Long> updatedPixelsEdits) throws IOException {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             Map<String, Object> jsonMessage = new HashMap<>();
@@ -138,6 +149,7 @@ public class CanvasBroadcastService {
             jsonMessage.put("values", updatedPixelsEdits);
             jsonMessage.put("positions",updatedPixelsPos);
             jsonMessage.put("size",updatedPixelsPos.size());
+            jsonMessage.put("sessionId",sessionId);
             String jsonString = objectMapper.writeValueAsString(jsonMessage);
             System.out.println("Broadcast");
             for (WebSocketSession session : canvasSessions.get(canvasId)) {
@@ -194,7 +206,6 @@ public class CanvasBroadcastService {
                             throw new Exception("Invalid DrawEvent: pixel at position " + pixelsPositions[i] + " is already colored");
                         }*/
 
-                        if(!Objects.equals(print.get(pixelsPositions[i]), pixelsEdits[i])) {
                             print.put(pixelsPositions[i] , pixelsEdits[i]);
                             updatedPixelsPostions.add(pixelsPositions[i]);
                             updatedPixelsEdits.add(pixelsEdits[i]);
@@ -202,7 +213,7 @@ public class CanvasBroadcastService {
                                 biggestPost = pixelsPositions[i];
                             }
                         }
-                    }
+
                     canvasPrintDTO.setPrint(print);
                     canvasPrints.put(canvasPrintDTO.getCanvasId(),canvasPrintDTO);
 /*
@@ -224,7 +235,7 @@ public class CanvasBroadcastService {
            canvasPrint = this.canvasPrintRepository.save(canvasPrint);
 */
             // TODO : BROADCAST TO CLIENTS
-                    broadcastCanvasPrint(canvasId,updatedPixelsPostions,updatedPixelsEdits);
+                    broadcastCanvasPrint(canvasId, drawEvent.getSessionId(), updatedPixelsPostions,updatedPixelsEdits);
 
         }catch (Exception e){
             e.printStackTrace();
