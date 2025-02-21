@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
+import com.pulse.canvas.Helper.IntegerTransformers;
 import com.pulse.canvas.Helper.RGBAUtils;
 import com.pulse.canvas.Repositories.ArtistRepository;
 import com.pulse.canvas.Repositories.CanvasPrintRepository;
@@ -59,7 +60,6 @@ public class CanvasBroadcastService {
    @Scheduled(fixedRate = 5000)
     public  void update(){
        try {
-           System.out.println("db updates "+ dbUpdates.size());
            Runnable task;
            while ((task = dbUpdates.poll()) != null) {
                task.run();
@@ -226,11 +226,11 @@ public class CanvasBroadcastService {
         List<Long> updatedPixelEdits = new ArrayList<>(pixels.values());
 
         byte[] byteArray = new byte[biggestPos * 4 + 1];
-        System.out.println(biggestPos);
 
         for (int i = 0; i < updatedPixelPositions.size(); i++) {
-            int pixelValue = Math.toIntExact(updatedPixelEdits.get(i));
-            int[] rgba = RGBAUtils.decodeRGBA(pixelValue);
+
+            int pixelValue = Math.toIntExact(IntegerTransformers.transformLongToInt(updatedPixelEdits.get(i)));
+            int[] rgba = RGBAUtils.decodeRGBA(IntegerTransformers.transformIntToLong(pixelValue));
 
             // Vérification des indices pour éviter les IndexOutOfBounds
             int position = Math.toIntExact(updatedPixelPositions.get(i));
@@ -262,8 +262,8 @@ public class CanvasBroadcastService {
 
                     CanvasPrintDTO canvasPrintDTO = canvasPrints.get(canvasId);
                     ConcurrentHashMap<Long,Long> print = canvasPrintDTO.getPrint();
-                    Long[] pixelsEdits = drawEvent.getPixelsEdits();
-                    Long[] pixelsPositions = drawEvent.getPixelsPositions();
+            Long[] pixelsEdits = drawEvent.getPixelsEdits();
+            Long[] pixelsPositions = drawEvent.getPixelsPositions();
 
 
                     if(pixelsPositions.length != pixelsEdits.length){
