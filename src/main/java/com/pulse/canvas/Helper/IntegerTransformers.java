@@ -10,8 +10,7 @@ public class IntegerTransformers {
         if (bigInt <= Integer.MAX_VALUE) {
             return (int) bigInt;
         } else {
-            // Map to negative int space
-            return (int) (bigInt - (Integer.MAX_VALUE + 1L)) - Integer.MAX_VALUE - 1;
+            return (int) -(bigInt - Integer.MAX_VALUE);
         }
     }
 
@@ -20,8 +19,22 @@ public class IntegerTransformers {
         if (value >= 0) {
             return value;
         } else {
-            return ((long) value + (Integer.MAX_VALUE + 1L) * 2);
+            return - (long) value + Integer.MAX_VALUE;
         }
     }
 
+    public static void main(String[] args) {
+
+        // Testing transformLongToInt
+        System.out.println(IntegerTransformers.transformLongToInt(0));
+        System.out.println(IntegerTransformers.transformLongToInt(2_147_483_647L));
+        System.out.println(IntegerTransformers.transformLongToInt(2_147_483_650L));
+        System.out.println(IntegerTransformers.transformLongToInt(4_294_967_295L));
+
+        // Testing transformIntToLong
+        System.out.println(IntegerTransformers.transformIntToLong(0));
+        System.out.println(IntegerTransformers.transformIntToLong(2_147_483_647));
+        System.out.println(IntegerTransformers.transformIntToLong(-3));
+        System.out.println(IntegerTransformers.transformIntToLong(-1));
+    }
 }

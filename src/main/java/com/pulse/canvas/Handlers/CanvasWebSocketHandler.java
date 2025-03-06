@@ -2,24 +2,18 @@ package com.pulse.canvas.Handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.DrawEvent;
-import com.pulse.canvas.services.CanvasBroadcastService;
+import com.pulse.canvas.services.CoreService;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class CanvasWebSocketHandler extends TextWebSocketHandler {
 
-    private final CanvasBroadcastService canvasBroadcastService;
 
-    public CanvasWebSocketHandler(CanvasBroadcastService broadcastService) {
+    private final CoreService canvasBroadcastService;
+    public CanvasWebSocketHandler(CoreService broadcastService) {
         this.canvasBroadcastService = broadcastService;
     }
 
@@ -37,7 +31,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
 
 
             // TODO : PROCESS DRAW EVENT
-            canvasBroadcastService.processUpdate(drawEvent,(Long) session.getAttributes().get("canvasId"));
+            canvasBroadcastService.processCanvasUpdate(drawEvent,(Long) session.getAttributes().get("canvasId"));
         }catch (Exception e){
             e.printStackTrace();
         }
