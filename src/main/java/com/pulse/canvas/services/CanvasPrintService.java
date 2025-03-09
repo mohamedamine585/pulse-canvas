@@ -2,6 +2,7 @@ package com.pulse.canvas.services;
 
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
+import com.pulse.canvas.enums.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class CanvasPrintService {
             dbUpdates.add(() -> databaseService.updateDataBase(canvasId, biggestPostFinal, updatedPixelsPostions, updatedPixelsEdits));
 
             System.out.println("SessionId: " + drawEvent.getSessionId());
-            webSocketService.broadcastCanvasPrint(canvasId, WebSocketService.MessageType.CANVAS_UPDATE, drawEvent.getSessionId() ,updatedPixelsPostions, updatedPixelsEdits);
+            webSocketService.broadcastCanvasPrint(canvasId, MessageType.CANVAS_UPDATE, drawEvent.getSessionId() ,updatedPixelsPostions, updatedPixelsEdits);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -2,15 +2,11 @@ package com.pulse.canvas.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
-import com.pulse.canvas.Helper.ByteTransformer;
-import com.pulse.canvas.Helper.IntegerTransformers;
-import com.pulse.canvas.Helper.RGBAUtils;
+import com.pulse.canvas.Helper.PixelMapBuilder;
 import com.pulse.canvas.entities.Artist;
 import com.pulse.canvas.entities.Canvas;
 import com.pulse.canvas.entities.CanvasPrint;
-import com.pulse.canvas.Repositories.ArtistRepository;
-import com.pulse.canvas.Repositories.CanvasPrintRepository;
-import com.pulse.canvas.Repositories.CanvasRepository;
+import com.pulse.canvas.enums.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
@@ -18,83 +14,40 @@ import org.springframework.web.socket.WebSocketSession;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Service
 public class WebSocketService {
 
     @Autowired
-    private ArtistRepository artistRepository;
-
-    @Autowired
-    private CanvasRepository canvasRepository;
-
-    @Autowired
-    private CanvasPrintRepository canvasPrintRepository;
+    private CanvasService canvasService;
 
     private static final Map<Long, Set<WebSocketSession>> canvasSessions = new ConcurrentHashMap<>();
     private static final Map<Long, Canvas> canvasMap = new ConcurrentHashMap<>();
 
     public void addClient(WebSocketSession session, Map<Long, CanvasPrintDTO> canvasPrints) throws Exception {
-        Long canvasPrintId = null;
-        ConcurrentHashMap<Long, Long> print = null;
-
         Map<String, Object> map = session.getAttributes();
         Long canvasId = (Long) map.get("canvasId");
         String username = (String) map.get("username");
 
-        Artist artist = artistRepository.findByUsername(username);
-        if (artist == null) {
-            artist = new Artist();
-            artist.setUsername("artist" + new Random().nextInt(1000));
-            artistRepository.save(artist);
-        }
-
-        Canvas canvas = canvasMap.get(canvasId);
-        if (canvas == null) {
-            canvas = canvasRepository.findById(canvasId).orElse(null);
-            if (canvas == null) {
-                Canvas newCanvas = new Canvas();
-                newCanvas.setName("Canvas " + new Random().nextInt(1000));
-                newCanvas.setCreator(artist);
-                canvas = canvasRepository.save(newCanvas);
-                canvasMap.put(canvasId, canvas);
-                CanvasPrint canvasPrint = new CanvasPrint();
-                canvasPrint.setCanvas(canvas);
-                byte[] byteArray = new byte[0];
-                canvasPrint.setPrint(byteArray);
-                canvasPrint = canvasPrintRepository.save(canvasPrint);
-                canvasPrintId = canvasPrint.getId();
-            } else {
-                byte[] printVals = canvas.getCanvasPrint().getPrint();
-                print = new ConcurrentHashMap<>();
-                for (int i = 0; i < printVals.length - 3; i = i + 4) {
-                    int r = ByteTransformer.byteToPixel(printVals[i]);
-                    int g = ByteTransformer.byteToPixel(printVals[i + 1]);
-                    int b = ByteTransformer.byteToPixel(printVals[i + 2]);
-                    int a = ByteTransformer.byteToPixel(printVals[i + 3]);
-                    int pixel = RGBAUtils.encodeRGBA(r, g, b, a);
-                    print.putIfAbsent((long) i / 4, IntegerTransformers.transformIntToLong(pixel));
-                }
-                canvas = canvasRepository.saveAndFlush(canvas);
-            }
-        } else {
-            print = null;
-        }
+        Artist artist = canvasService.getOrCreateArtist(username);
+        Canvas canvas = canvasService.getOrCreateCanvas(canvasId, artist);
+        CanvasPrint canvasPrint = canvasService.getOrCreateCanvasPrint(canvas);
 
         session.setBinaryMessageSizeLimit(1024 * 1024 * 10);
         session.setTextMessageSizeLimit(1024 * 1024 * 10);
         canvasSessions.computeIfAbsent(canvasId, k -> new CopyOnWriteArraySet<>()).add(session);
 
-        CanvasPrintDTO canvasPrintDTO = canvasPrints.putIfAbsent(canvasId, new CanvasPrintDTO(canvasId, canvasPrintId, print));
+        byte[] print = canvasPrint.getPrint();
+
+        ConcurrentHashMap<Long, Long> printMap = PixelMapBuilder.buildPixelMap(print);
+        CanvasPrintDTO canvasPrintDTO = canvasPrints.putIfAbsent(canvasId, new CanvasPrintDTO(canvasId, canvasPrint.getId(), printMap));
         if (canvasPrintDTO == null) {
+
             canvasPrintDTO = canvasPrints.get(canvasId);
         }
 
-        print = canvasPrintDTO.getPrint();
-        broadcastCanvasPrint(canvasId, MessageType.NEW_USER , session.getId(), new ArrayList<>(print.keySet()), new ArrayList<>(print.values()));
-
+        broadcastCanvasPrint(canvasId, MessageType.NEW_USER, session.getId(), new ArrayList<>(canvasPrintDTO.getPrint().keySet()), new ArrayList<>(canvasPrintDTO.getPrint().values()));
         sendJsonMessage(session, MessageType.HELLO, "hello" + canvas.getName());
     }
 
@@ -115,7 +68,7 @@ public class WebSocketService {
         session.sendMessage(new TextMessage(jsonString));
     }
 
-    public void broadcastCanvasPrint(Long canvasId, MessageType message , String sessionId, List<Long> updatedPixelsPos, List<Long> updatedPixelsEdits) throws Exception {
+    public void broadcastCanvasPrint(Long canvasId, MessageType message, String sessionId, List<Long> updatedPixelsPos, List<Long> updatedPixelsEdits) throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<String, Object> jsonMessage = new HashMap<>();
         jsonMessage.put("messageType", message);
@@ -134,9 +87,5 @@ public class WebSocketService {
         }
     }
 
-    public enum MessageType {
-        HELLO,
-        CANVAS_UPDATE,
-        NEW_USER
-    }
+
 }

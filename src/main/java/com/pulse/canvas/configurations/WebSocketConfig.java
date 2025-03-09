@@ -27,7 +27,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(canvasWebSocketHandler, "/canvas")
+        registry.addHandler(canvasWebSocketHandler, "/live/canvas")
                 .addInterceptors(handshakeInterceptor)
                 .setAllowedOrigins("*"); // Adjust for production security
     }
