@@ -2,7 +2,9 @@ package com.pulse.canvas.services;
 
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
+import com.pulse.canvas.Helper.AppEventTriggers.DrawEventToSync;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,7 +44,16 @@ public class CoreService {
     }
 
     @Transactional
-    public void processCanvasUpdate(DrawEvent drawEvent, Long canvasId) {
-        canvasPrintService.processUpdate(drawEvent, canvasId, canvasPrints, dbUpdates);
+    public void processCanvasUpdate(DrawEvent drawEvent, Boolean shouldUpdateDatabase) {
+        if(shouldUpdateDatabase == null){
+            shouldUpdateDatabase = true;
+        }
+        canvasPrintService.processUpdate(drawEvent, canvasPrints, dbUpdates,shouldUpdateDatabase);
+    }
+
+    @EventListener
+    public void onSyncCanvas(DrawEventToSync drawEventToSync) {
+        System.out.println("Syncing canvas");
+        processCanvasUpdate(drawEventToSync.getDrawEvent(), false);
     }
 }

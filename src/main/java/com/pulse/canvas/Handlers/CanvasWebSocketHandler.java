@@ -3,6 +3,7 @@ package com.pulse.canvas.Handlers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.DrawEvent;
 import com.pulse.canvas.services.CoreService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -11,9 +12,10 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 @Component
 public class CanvasWebSocketHandler extends TextWebSocketHandler {
 
-
+    private String appInstanceId;
     private final CoreService canvasBroadcastService;
-    public CanvasWebSocketHandler(CoreService broadcastService) {
+    public CanvasWebSocketHandler(CoreService broadcastService,String appInstanceId) {
+        this.appInstanceId = appInstanceId;
         this.canvasBroadcastService = broadcastService;
     }
 
@@ -26,12 +28,11 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             // Process the JSON data (e.g., canvas drawing events)
             ObjectMapper objectMapper = new ObjectMapper();
             DrawEvent drawEvent = objectMapper.readValue(payload, DrawEvent.class);
-
-            System.out.println("Received draw event for canvas " + session.getAttributes().get("canvasId"));
-
+            drawEvent.setCanvasId((Long) session.getAttributes().get("canvasId"));
+            drawEvent.setInstanceId(appInstanceId);
 
             // TODO : PROCESS DRAW EVENT
-            canvasBroadcastService.processCanvasUpdate(drawEvent,(Long) session.getAttributes().get("canvasId"));
+            canvasBroadcastService.processCanvasUpdate(drawEvent,true);
         }catch (Exception e){
             e.printStackTrace();
         }
