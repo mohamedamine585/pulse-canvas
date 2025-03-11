@@ -32,7 +32,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             drawEvent.setInstanceId(appInstanceId);
 
             // TODO : PROCESS DRAW EVENT
-            canvasBroadcastService.processCanvasUpdate(drawEvent,true);
+            canvasBroadcastService.processCanvasUpdate(drawEvent);
         }catch (Exception e){
             e.printStackTrace();
         }

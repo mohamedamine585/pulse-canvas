@@ -43,17 +43,17 @@ public class CoreService {
         webSocketService.removeClient(session);
     }
 
-    @Transactional
-    public void processCanvasUpdate(DrawEvent drawEvent, Boolean shouldUpdateDatabase) {
-        if(shouldUpdateDatabase == null){
-            shouldUpdateDatabase = true;
-        }
-        canvasPrintService.processUpdate(drawEvent, canvasPrints, dbUpdates,shouldUpdateDatabase);
+    public void processCanvasSyncUpdate(DrawEvent drawEvent) {
+        canvasPrintService.processSyncUpdate(drawEvent, canvasPrints);
+    }
+    public void processCanvasUpdate(DrawEvent drawEvent) {
+
+        canvasPrintService.processUpdate(drawEvent, canvasPrints, dbUpdates);
     }
 
     @EventListener
     public void onSyncCanvas(DrawEventToSync drawEventToSync) {
         System.out.println("Syncing canvas");
-        processCanvasUpdate(drawEventToSync.getDrawEvent(), false);
+        processCanvasSyncUpdate(drawEventToSync.getDrawEvent());
     }
 }

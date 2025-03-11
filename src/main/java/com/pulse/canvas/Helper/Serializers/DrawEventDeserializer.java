@@ -1,6 +1,7 @@
 
 package com.pulse.canvas.Helper.Serializers;
 
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.pulse.canvas.Dtoes.DrawEvent;
 import org.apache.kafka.common.serialization.Deserializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,7 +14,7 @@ public class DrawEventDeserializer implements Deserializer<DrawEvent> {
 
     @Override
     public void configure(Map<String, ?> configs, boolean isKey) {
-        // No configuration needed
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     @Override
