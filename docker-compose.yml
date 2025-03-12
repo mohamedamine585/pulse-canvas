@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+
+  kafka:
+    container_name: pulse-kafka
+    image: wurstmeister/kafka:latest
+    environment:
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092  # Kafka listens on all interfaces
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  # Kafka advertised to clients
+      KAFKA_LISTENER_SECURITY_PROTOCOL: PLAINTEXT
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+    ports:
+      - "9092:9092"  # Exposed PLAINTEXT port for non-secure communication
+    depends_on:
+      - zookeeper
+    networks:
+        - pulse-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: pulse-zookeeper
+    ports:
+      - "2181:2181"  # Zookeeper connection
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+    networks:
+        - pulse-network
+  postgres:
+    container_name: pulse-auth-dbc
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: authdb
+    ports:
+      - "5432:5432"  # Exposed PostgreSQL port
+    networks:
+        - pulse-network
+  mongo:
+    image: mongo
+    container_name: pulse-galaxy-mongo
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    networks:
+        - pulse-network
+  mongo-express:
+   image: mongo-express
+   networks:
+    - pulse-network
+   ports:
+    - 8081:8081
+   environment:
+    ME_CONFIG_MONGODB_ADMINUSERNAME: root
+    ME_CONFIG_MONGODB_ADMINPASSWORD: example
+    ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+    ME_CONFIG_BASICAUTH: 1
+    ME_CONFIG_MONGODB_DATABASE: canvasdb  # Add this line to set the default DB
+
+  canvas-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: canvaspdb
+    networks:
+        - pulse-network
+    ports:
+      - "5433:5432"  # Exposed PostgreSQL port
+
+  pulse-canvas-service1:
+    container_name: pulse-canvas-service1
+    image: pulse-canvas-service:latest
+    ports:
+      - 8080:8080
+
+    depends_on:
+        - canvas-postgres
+        - mongo
+        - kafka
+    networks:
+        - pulse-network
+
+  pulse-canvas-service2:
+    container_name: pulse-canvas-service2
+    image: pulse-canvas-service:latest
+    ports:
+      - 8082:8080
+    depends_on:
+      - canvas-postgres
+      - mongo
+      - kafka
+    networks:
+      - pulse-network
+  nginx:
+    image: nginx
+    container_name: nginx-lb
+    depends_on:
+      - pulse-canvas-service1
+      - pulse-canvas-service2
+    networks:
+        - pulse-network
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+
+volumes:
+  postgres-data:
+
+networks:
+    pulse-network:
+        driver: bridge
