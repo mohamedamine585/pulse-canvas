@@ -20,7 +20,7 @@ public class JwtHelper {
     }
 
     public String extractUsername(String token) {
-        Claims claims = Jwts.parser()
+        Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()
                 .parseClaimsJws(token)

@@ -6,6 +6,7 @@ import com.pulse.canvas.Helper.Serializers.DrawEventDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -20,10 +21,13 @@ public class KafkaConsumerConfig {
 
     @Autowired
     private String appInstanceId;
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String kafkaServer;
     @Bean
     public ConsumerFactory<String, DrawEvent> consumerFactory() {
         Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "kafka:9092");
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
         configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "canvas-sync-group-" + appInstanceId);
         configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DrawEventDeserializer.class);

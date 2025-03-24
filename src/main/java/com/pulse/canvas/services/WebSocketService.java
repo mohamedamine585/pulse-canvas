@@ -32,6 +32,9 @@ public class WebSocketService {
 
         Artist artist = canvasService.getOrCreateArtist(username);
         Canvas canvas = canvasService.getOrCreateCanvas(canvasId, artist);
+        if(canvas == null) {
+            throw new Exception("Cannot find canvas");
+        }
         CanvasPrint canvasPrint = canvasService.getOrCreateCanvasPrint(canvas);
 
         session.setBinaryMessageSizeLimit(1024 * 1024 * 10);

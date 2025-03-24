@@ -2,7 +2,6 @@ package com.pulse.canvas.services;
 
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
-import com.pulse.canvas.configurations.AppConfig;
 import com.pulse.canvas.enums.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -26,109 +25,91 @@ public class CanvasPrintService {
     @Autowired
     private CanvasSyncService canvasSyncService;
 
-    @Autowired
-    private String  appInstanceId;
-
     @Async
     public void processUpdate(DrawEvent drawEvent, Map<Long, CanvasPrintDTO> canvasPrints, ConcurrentLinkedQueue<Runnable> dbUpdates) {
         try {
-            long biggestPost = 0;
-            Long canvasId = drawEvent.getCanvasId();
             List<Long> updatedPixelsPostions = new ArrayList<>();
             List<Long> updatedPixelsEdits = new ArrayList<>();
 
-            CanvasPrintDTO canvasPrintDTO = canvasPrints.get(canvasId);
-            if(canvasPrintDTO == null){
-                return;
-            }
-            ConcurrentHashMap<Long, Long> print = canvasPrintDTO.getPrint();
-            Long[] pixelsEdits = drawEvent.getPixelsEdits();
-            Long[] pixelsPositions = drawEvent.getPixelsPositions();
+            // TODO : Process DrawEvent
+            processDrawEvent(drawEvent, canvasPrints, updatedPixelsPostions, updatedPixelsEdits);
 
-            if (pixelsPositions.length != pixelsEdits.length) {
-                throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
-            }
-            if (pixelsPositions.length == 0) {
-                throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
-            }
-
-            for (int i = 0; i < pixelsPositions.length; i++) {
-                if (pixelsPositions[i] < 0) {
-                    throw new Exception("Invalid DrawEvent: pixelsPositions must be within the bounds of the canvas");
-                }
-                print.put(pixelsPositions[i], pixelsEdits[i]);
-                updatedPixelsPostions.add(pixelsPositions[i]);
-                updatedPixelsEdits.add(pixelsEdits[i]);
-                if (pixelsPositions[i] > biggestPost) {
-                    biggestPost = pixelsPositions[i];
-                }
-            }
-
-            canvasPrintDTO.setPrint(print);
-            canvasPrints.put(canvasPrintDTO.getCanvasId(), canvasPrintDTO);
-
-
+            // TODO : Sync with other instances
             canvasSyncService.sendCanvasToSync(drawEvent);
-            webSocketService.broadcastCanvasPrint(canvasId, MessageType.CANVAS_UPDATE, drawEvent.getSessionId() ,updatedPixelsPostions, updatedPixelsEdits);
+            // TODO : Broadcast to all clients
+            webSocketService.broadcastCanvasPrint(drawEvent.getCanvasId(), MessageType.CANVAS_UPDATE, drawEvent.getSessionId(), updatedPixelsPostions, updatedPixelsEdits);
 
-            updateDatabase(canvasId, updatedPixelsPostions, updatedPixelsEdits, dbUpdates);
+            // TODO : Update Database
+            updateDatabase(drawEvent.getCanvasId(), updatedPixelsPostions, updatedPixelsEdits, dbUpdates);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
     @Async
     public void processSyncUpdate(DrawEvent drawEvent, Map<Long, CanvasPrintDTO> canvasPrints) {
         try {
-            long biggestPost = 0;
-            Long canvasId = drawEvent.getCanvasId();
             List<Long> updatedPixelsPostions = new ArrayList<>();
             List<Long> updatedPixelsEdits = new ArrayList<>();
 
-            CanvasPrintDTO canvasPrintDTO = canvasPrints.get(canvasId);
-            if(canvasPrintDTO == null){
-                return;
-            }
-            ConcurrentHashMap<Long, Long> print = canvasPrintDTO.getPrint();
-            Long[] pixelsEdits = drawEvent.getPixelsEdits();
-            Long[] pixelsPositions = drawEvent.getPixelsPositions();
+            // TODO : Process DrawEvent
+            processDrawEvent(drawEvent, canvasPrints, updatedPixelsPostions, updatedPixelsEdits);
 
-            if (pixelsPositions.length != pixelsEdits.length) {
-                throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
-            }
-            if (pixelsPositions.length == 0) {
-                throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
-            }
-
-            for (int i = 0; i < pixelsPositions.length; i++) {
-                if (pixelsPositions[i] < 0) {
-                    throw new Exception("Invalid DrawEvent: pixelsPositions must be within the bounds of the canvas");
-                }
-                print.put(pixelsPositions[i], pixelsEdits[i]);
-                updatedPixelsPostions.add(pixelsPositions[i]);
-                updatedPixelsEdits.add(pixelsEdits[i]);
-                if (pixelsPositions[i] > biggestPost) {
-                    biggestPost = pixelsPositions[i];
-                }
-            }
-
-            canvasPrintDTO.setPrint(print);
-            canvasPrints.put(canvasPrintDTO.getCanvasId(), canvasPrintDTO);
-
-
-            webSocketService.broadcastCanvasPrint(canvasId, MessageType.CANVAS_UPDATE, drawEvent.getSessionId() ,updatedPixelsPostions, updatedPixelsEdits);
+            // TODO : Broadcast to all clients
+            webSocketService.broadcastCanvasPrint(drawEvent.getCanvasId(), MessageType.CANVAS_UPDATE, drawEvent.getSessionId(), updatedPixelsPostions, updatedPixelsEdits);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    private void processDrawEvent(DrawEvent drawEvent, Map<Long, CanvasPrintDTO> canvasPrints, List<Long> updatedPixelsPostions, List<Long> updatedPixelsEdits) throws Exception {
+        Long canvasId = drawEvent.getCanvasId();
+        CanvasPrintDTO canvasPrintDTO = canvasPrints.get(canvasId);
+        if (canvasPrintDTO == null) {
+            return;
+        }
+        ConcurrentHashMap<Long, Long> print = canvasPrintDTO.getPrint();
+        Long[] pixelsEdits = drawEvent.getPixelsEdits();
+        Long[] pixelsPositions = drawEvent.getPixelsPositions();
+
+        if (pixelsPositions.length != pixelsEdits.length) {
+            throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
+        }
+        if (pixelsPositions.length == 0) {
+            throw new Exception("Invalid DrawEvent: pixelsPositions and pixelsEdits must have the same length");
+        }
+
+        for (int i = 0; i < pixelsPositions.length; i++) {
+            if (pixelsPositions[i] < 0) {
+                throw new Exception("Invalid DrawEvent: pixelsPositions must be within the bounds of the canvas");
+            }
+            if(pixelsPositions[i] > 800*600){
+                throw new Exception("Invalid DrawEvent: pixelsPositions must be within the bounds of the canvas");
+            }
+            // TODO : Check if the event timestamp is older than the latest update or if the pixel is virgin
+            if (print.containsKey(pixelsPositions[i])) {
+                if (print.get(pixelsPositions[i]).equals(pixelsEdits[i])) {
+                    continue;
+                }
+            }
+            print.put(pixelsPositions[i], pixelsEdits[i]);
+            updatedPixelsPostions.add(pixelsPositions[i]);
+            updatedPixelsEdits.add(pixelsEdits[i]);
+        }
+
+        canvasPrintDTO.setPrint(print);
+        // TODO : UPDATE INTERNAL STATE
+        canvasPrints.put(canvasPrintDTO.getCanvasId(), canvasPrintDTO);
+    }
+
     public void updateDatabase(Long canvasId, List<Long> updatedPixelsPostions, List<Long> updatedPixelsEdits, ConcurrentLinkedQueue<Runnable> dbUpdates) {
-         Integer biggestPostFinal = Math.toIntExact(updatedPixelsPostions.get(0));
-        for(int i = 1; i < updatedPixelsPostions.size(); i++){
-            if(updatedPixelsPostions.get(i) > biggestPostFinal){
+        Integer biggestPostFinal = Math.toIntExact(updatedPixelsPostions.get(0));
+        for (int i = 1; i < updatedPixelsPostions.size(); i++) {
+            if (updatedPixelsPostions.get(i) > biggestPostFinal) {
                 biggestPostFinal = Math.toIntExact(updatedPixelsPostions.get(i));
             }
         }
         Integer finalBiggestPostFinal = biggestPostFinal;
         dbUpdates.add(() -> databaseService.updateDataBase(canvasId, finalBiggestPostFinal, updatedPixelsPostions, updatedPixelsEdits));
-
     }
 }

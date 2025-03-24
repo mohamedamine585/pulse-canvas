@@ -4,29 +4,36 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 @Configuration
 public class ThreadPoolConfig {
 
-    int availableCores = Runtime.getRuntime().availableProcessors();  // Get number of available cores
-
-
+    private static final int AVAILABLE_CORES = Runtime.getRuntime().availableProcessors();
 
     public ThreadPoolTaskExecutor canvasThreadPool() {
-        System.out.println(availableCores);
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(7);  // Set the core pool size for canvas handling
-        executor.setMaxPoolSize(7);   // Set the max pool size for canvas handling
-        executor.setQueueCapacity(10); // Set queue capacity for canvas tasks
+        executor.setCorePoolSize(7);   // Core thread count for canvas handling
+        executor.setMaxPoolSize(7);    // Maximum thread count
+        executor.setQueueCapacity(10); // Queue size for pending tasks
         executor.setThreadNamePrefix("CanvasThread-");
+        executor.initialize();
         return executor;
     }
 
     public ThreadPoolTaskExecutor dbThreadPool() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);  // Set the core pool size for DB operations
-        executor.setMaxPoolSize(1);   // Set the max pool size for DB operations
-        executor.setQueueCapacity(5); // Set queue capacity for DB tasks
+        executor.setCorePoolSize(1);   // Single thread for DB operations
+        executor.setMaxPoolSize(1);
+        executor.setQueueCapacity(5);
         executor.setThreadNamePrefix("DBThread-");
+        executor.initialize();
         return executor;
     }
+
+   /* @Bean
+    public Executor virtualThreadExecutor() {
+        return Executors.newVirtualThreadPerTaskExecutor();
+    }*/
 }
