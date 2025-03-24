@@ -11,8 +11,40 @@ public class CanvasPrintEditRange {
 
     private Integer minIndx;
     private Integer maxIndx;
-
     @ManyToOne()
-    @JoinColumn(name = "canvasEditId")
-    private CanvasPrint canvasEdit;
+    private CanvasPrintEdit canvasEdit;
+
+    public void setCanvasPrintEditRangeId(Long canvasPrintEditRangeId) {
+        this.canvasPrintEditRangeId = canvasPrintEditRangeId;
+    }
+
+    public CanvasPrintEdit getCanvasEdit() {
+        return canvasEdit;
+    }
+
+    public Integer getMaxIndx() {
+        return maxIndx;
+    }
+
+    public void setCanvasEdit(CanvasPrintEdit canvasEdit) {
+        this.canvasEdit = canvasEdit;
+    }
+
+    public void setMaxIndx(Integer maxIndx) {
+        this.maxIndx = maxIndx;
+    }
+
+    public void setMinIndx(Integer minIndx) {
+        this.minIndx = minIndx;
+    }
+
+    public Integer getMinIndx() {
+        return minIndx;
+    }
+
+    public Long getCanvasPrintEditRangeId() {
+        return canvasPrintEditRangeId;
+    }
+
+
 }
