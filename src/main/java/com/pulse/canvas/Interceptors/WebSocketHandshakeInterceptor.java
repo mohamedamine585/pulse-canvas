@@ -79,6 +79,8 @@ package com.pulse.canvas.Interceptors;
                                         return false;
                                     }
 
+
+
                                     return true;
                                 } catch (Exception e) {
                                     e.printStackTrace();

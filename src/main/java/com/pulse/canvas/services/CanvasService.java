@@ -30,7 +30,7 @@ public class CanvasService {
     @Autowired
     private CanvasPrintRepository canvasPrintRepository;
 
-    public Canvas createCanvas(CanvasDTO canvas) {
+    public CanvasDTO createCanvas(CanvasDTO canvas) {
         try {
             System.out.println("Creating canvas");
             final Authentication authentication =  SecurityContextHolder.getContext().getAuthentication();
@@ -43,7 +43,14 @@ public class CanvasService {
             Canvas newCanvas = new Canvas();
             newCanvas.setName(canvas.getCanvasName());
             newCanvas.setCreator(artist);
-            return canvasRepository.save(newCanvas);
+
+             newCanvas = canvasRepository.save(newCanvas);
+            CanvasDTO canvasDTO = new CanvasDTO();
+
+            canvasDTO.setId(newCanvas.getId());
+            canvasDTO.setCanvasName(newCanvas.getName());
+            canvasDTO.setCreatorId(newCanvas.getCreator().getId());
+            return canvasDTO;
         }
         catch (Exception e) {
             e.printStackTrace();

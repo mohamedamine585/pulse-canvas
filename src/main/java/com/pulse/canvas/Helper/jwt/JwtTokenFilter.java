@@ -22,6 +22,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 
     private String extractToken(HttpServletRequest request) {
+        if(request.getRequestURI().contains("/live/canvas"))
+        {
+            String query = request.getQueryString();
+            if (query != null) {
+                String[] params = query.split("&");
+                for (String param : params) {
+                    String[] keyValue = param.split("=");
+                    if (keyValue.length == 2 && keyValue[0].equals("token")) {
+                        return keyValue[1]; // Extract token value as String
+                    }
+                }
+            }
+        }
 
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
@@ -86,7 +99,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             // Create the authentication object
             JwtAuthenticationToken authentication = new JwtAuthenticationToken(claims);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            System.out.println("extracted token: " + token);
         }
+
 
         filterChain.doFilter(request, response);
     }

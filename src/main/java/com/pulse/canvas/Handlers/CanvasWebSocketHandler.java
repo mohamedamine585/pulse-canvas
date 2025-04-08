@@ -46,6 +46,7 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
         // When a new WebSocket connection is established, add the session to the list of clients
 
 
+        System.out.println("New WebSocket connection established: " + session.getId());
         canvasBroadcastService.addClient(session);
     }
 

@@ -17,7 +17,9 @@ public class CanvasController {
     private CanvasService canvasService;
 
     @PostMapping
-    public Canvas createCanvas(@RequestBody CanvasDTO canvas) {
+    public CanvasDTO createCanvas(@RequestBody CanvasDTO canvas) {
+
+
         return canvasService.createCanvas(canvas);
     }
 

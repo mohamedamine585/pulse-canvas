@@ -66,6 +66,7 @@ public class WebSocketService {
             canvasPrintDTO = canvasPrints.get(canvasId);
         }
 
+        System.out.println("//" + canvasId);
         broadcastCanvasPrint(canvasId, MessageType.NEW_USER, session.getId(), new ArrayList<>(canvasPrintDTO.getPrint().keySet()), new ArrayList<>(canvasPrintDTO.getPrint().values()));
         sendJsonMessage(session, MessageType.HELLO, "hello" + canvas.getName());
     }
