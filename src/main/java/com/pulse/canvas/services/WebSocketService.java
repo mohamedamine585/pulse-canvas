@@ -3,11 +3,16 @@ package com.pulse.canvas.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Helper.PixelMapBuilder;
+import com.pulse.canvas.Helper.jwt.JwtTokenFilter;
 import com.pulse.canvas.entities.Artist;
 import com.pulse.canvas.entities.Canvas;
 import com.pulse.canvas.entities.CanvasPrint;
 import com.pulse.canvas.enums.MessageType;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -22,15 +27,26 @@ public class WebSocketService {
     @Autowired
     private CanvasService canvasService;
 
+
+
+
     private static final Map<Long, Set<WebSocketSession>> canvasSessions = new ConcurrentHashMap<>();
     private static final Map<Long, Canvas> canvasMap = new ConcurrentHashMap<>();
 
     public void addClient(WebSocketSession session, Map<Long, CanvasPrintDTO> canvasPrints) throws Exception {
         Map<String, Object> map = session.getAttributes();
         Long canvasId = (Long) map.get("canvasId");
-        String username = (String) map.get("username");
+        Long userId = (Long) map.get("userId");
+        if (canvasId == null) {
+            throw new Exception("Canvas ID is missing");
+        }
 
-        Artist artist = canvasService.getOrCreateArtist(username);
+
+        Artist artist = canvasService.getOrCreateArtist(userId);
+        if(artist == null){
+            return;
+        }
+
         Canvas canvas = canvasService.getOrCreateCanvas(canvasId, artist);
         if(canvas == null) {
             throw new Exception("Cannot find canvas");

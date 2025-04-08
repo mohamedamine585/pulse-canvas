@@ -58,4 +58,6 @@ public class CoreService {
         System.out.println("Syncing canvas");
         processCanvasSyncUpdate(drawEventToSync.getDrawEvent());
     }
+
+
 }

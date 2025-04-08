@@ -1,6 +1,7 @@
 package com.pulse.canvas.Interceptors;
 
                         import com.pulse.canvas.Helper.JwtHelper;
+                        import com.pulse.canvas.Helper.jwt.JwtTokenFilter;
                         import jakarta.servlet.http.HttpServletRequest;
                         import jakarta.servlet.http.HttpServletResponse;
                         import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,8 @@ package com.pulse.canvas.Interceptors;
                             @Autowired
                             JwtHelper jwtHelper;
 
+                            @Autowired
+                            JwtTokenFilter jwtTokenFilter;
                             @Override
                             public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler,
                                                            Map<String, Object> attributes) throws Exception {
@@ -37,15 +40,19 @@ package com.pulse.canvas.Interceptors;
                                         }
                                     }
 
-                                    if (token != null) {
-                                        System.out.println(token);
-                                        attributes.put("username", jwtHelper.extractUsername(token));
-                                    } else {
-                                        throw new IllegalArgumentException("Token parameter not found in query string");
+                                    if (token == null) {
+                                        throw new Exception("Token is missing");
                                     }
 
-                                    // Extract query parameters from the WebSocket handshake request URL
-                                    URI uri = request.getURI();
+                                    Long userId = Long.valueOf(jwtTokenFilter.getClaims(token).getSubject());
+
+                                    if(userId == null) {
+                                        throw new Exception("User ID is missing");
+                                    }
+                                    attributes.put("userId", userId); // Store userId in attributes
+
+
+
 
 
                                     // Parse individual query parameters (e.g., canvasId)

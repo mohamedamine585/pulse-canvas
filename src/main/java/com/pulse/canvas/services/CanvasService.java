@@ -32,14 +32,14 @@ public class CanvasService {
 
     public Canvas createCanvas(CanvasDTO canvas) {
         try {
+            System.out.println("Creating canvas");
             final Authentication authentication =  SecurityContextHolder.getContext().getAuthentication();
             if(authentication == null)
                 throw new Exception("Authentication is null");
             System.out.println(authentication.getPrincipal());
             final Claims claims = (Claims) authentication.getPrincipal();
-            final String email = claims.getSubject();
-            System.out.println(email);
-            Artist artist = getOrCreateArtist(email);
+            final Long userId = Long.valueOf(claims.getSubject());
+            Artist artist = getOrCreateArtist(userId);
             Canvas newCanvas = new Canvas();
             newCanvas.setName(canvas.getCanvasName());
             newCanvas.setCreator(artist);
@@ -60,22 +60,15 @@ public class CanvasService {
     public Canvas getCanvas(Long canvasId) {
         return canvasRepository.findById(canvasId).orElse(null);
     }
-    public Artist getOrCreateArtist(String username) {
-        Artist artist = artistRepository.findByUsername(username);
-        if (artist == null) {
-            artist = new Artist();
-            artist.setUsername("artist" + new Random().nextInt(1000));
-            artistRepository.save(artist);
-        }
-        return artist;
+    public Artist getOrCreateArtist(Long userId) {
+        Optional<Artist> artistOptional = artistRepository.findById(userId);
+        return artistOptional.orElse(null);
     }
 
     public Canvas getOrCreateCanvas(Long canvasId, Artist artist) {
         try {
             Optional<Canvas> optionalCanvas = canvasRepository.findById(canvasId);
             if (optionalCanvas.isPresent()) {
-                if(!Objects.equals(optionalCanvas.get().getCreator().getId(), artist.getId()))
-                    throw new Exception("Canvas does not belong to the artist");
                 return optionalCanvas.get();
             } else {
                 Canvas newCanvas = new Canvas();
@@ -94,6 +87,7 @@ public class CanvasService {
         if (canvasPrint == null) {
             canvasPrint = new CanvasPrint();
             canvasPrint.setCanvas(canvas);
+
             canvasPrint.setPrint(new byte[0]);
             return canvasPrintRepository.save(canvasPrint);
         }

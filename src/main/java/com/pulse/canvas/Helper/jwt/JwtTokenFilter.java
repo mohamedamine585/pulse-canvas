@@ -1,7 +1,6 @@
 package com.pulse.canvas.Helper.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
@@ -23,16 +22,16 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
 
     private String extractToken(HttpServletRequest request) {
+
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
-            System.out.println(header.substring(7));
             return header.substring(7);
         }
         return null;
     }
 
 
-    private Claims getClaims(String token) {
+    public Claims getClaims(String token) {
         Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
 
         return Jwts.parserBuilder().setSigningKey(SECRET_KEY.getBytes())
@@ -49,32 +48,43 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     private boolean validateToken(String token) {
         try {
             Key key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
+
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY.getBytes())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
 
+            // Additional custom validation (example)
+            // if (!"expected-issuer".equals(claims.getIssuer())) {
+            //     return false;
+            // }
 
-            return true; // Token is valid
-        } catch (Exception e) {
-            // Catch and log errors, if any
-            System.out.println(e.getMessage());
-            return false; // Token is invalid
+            return true;
+        } catch (ExpiredJwtException ex) {
+            logger.error("Token expired: {}", ex);
+            return false;
+        } catch (MalformedJwtException ex) {
+            logger.error("Invalid token: {}", ex);
+            return false;
+        } catch (JwtException | IllegalArgumentException ex) {
+            logger.error("Token validation error: {}", ex);
+            return false;
         }
     }
 
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+
+
         String token = extractToken(request);
         if (token != null && validateToken(token) && !isTokenExpired(token)) {
             Claims claims = getClaims(token);
 
             // Create the authentication object
             JwtAuthenticationToken authentication = new JwtAuthenticationToken(claims);
-            // Set authentication in the security context
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 

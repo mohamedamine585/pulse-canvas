@@ -25,10 +25,12 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             // Handle incoming TextMessage (for example, drawing data or CanvasPrint)
             String payload = message.getPayload();
 
+
             // Process the JSON data (e.g., canvas drawing events)
             ObjectMapper objectMapper = new ObjectMapper();
             DrawEvent drawEvent = objectMapper.readValue(payload, DrawEvent.class);
             drawEvent.setCanvasId((Long) session.getAttributes().get("canvasId"));
+            drawEvent.setUserId((Long) session.getAttributes().get("userId"));
             drawEvent.setInstanceId(appInstanceId);
 
             // TODO : PROCESS DRAW EVENT

@@ -1,43 +1,37 @@
 package com.pulse.canvas.configurations;
 
-import com.pulse.canvas.Helper.jwt.JwtAuthenticationToken;
 import com.pulse.canvas.Helper.jwt.JwtTokenFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-//@Configuration
-//@EnableWebSecurity
+@Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
-     JwtTokenFilter jwtAuthenticationToken() {
+    JwtTokenFilter jwtAuthenticationToken() {
         return new JwtTokenFilter();
     }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .authorizeRequests()
-                // Allow public access to authentication and Swagger-related endpoints
 
-                .and()
-                .httpBasic()  // Use basic authentication for HTTP basic security
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/live/canvas","/api/canvas/**").permitAll()
+            )
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable());
 
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // Stateless session configuration (for WebSockets)
 
-                .and()
-                .csrf().disable().cors();  // Disable CSRF for WebSocket support
-
-        http.addFilterBefore(jwtAuthenticationToken(), UsernamePasswordAuthenticationFilter.class);  // Add JWT authentication filter
+        http.addFilterBefore(jwtAuthenticationToken(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

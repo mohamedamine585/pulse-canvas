@@ -2,61 +2,40 @@ version: '3.8'
 
 services:
 
-  zookeeper:
-    image: bitnami/zookeeper:latest
-    environment:
-      - ALLOW_ANONYMOUS_LOGIN=yes
-    networks:
-      - pulse-network
+ zookeeper:
+  image: confluentinc/cp-zookeeper:7.5.0
+  container_name: zookeeper
+  ports:
+    - "2181:2181"
+  environment:
+    ZOOKEEPER_CLIENT_PORT: 2181
+    ZOOKEEPER_TICK_TIME: 2000
+
+ kafka:
+    image: confluentinc/cp-kafka:7.5.0
     ports:
-      - "2181:2181"
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
-    healthcheck:
-      test: [ "CMD", "nc", "-z", "localhost", "2181" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
 
-  kafka:
-      image: bitnami/kafka:latest
-      environment:
-        - KAFKA_CFG_BROKER_ID=1
-        - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181  # Connect Kafka to ZooKeeper
-        - KAFKA_ZOOKEEPER_PROTOCOL=PLAINTEXT  # No authentication
-        - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092
-        - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092
 
-      networks:
-        - pulse-network
-      depends_on:
-        - zookeeper
-      ports:
-        - "9092:9092"
-      deploy:
-        replicas: 1
-        restart_policy:
-          condition: on-failure
-      healthcheck:
-        test: [ "CMD", "kafka-topics.sh", "--bootstrap-server", "localhost:9092", "--list" ]
-        interval: 10s
-        timeout: 5s
-        retries: 5
-  mongo:
+ mongo:
     image: mongo
     ports:
       - 27017:27017
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
-    networks:
-      - pulse-network
+
     deploy:
       replicas: 1
 
-  mongo-express:
+ mongo-express:
     image: mongo-express
     networks:
       - pulse-network
@@ -71,33 +50,30 @@ services:
     deploy:
       replicas: 1
 
-  postgres:
+ postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: authdb
-    networks:
-      - pulse-network
+
     ports:
       - "5432:5432"  # Exposed PostgreSQL port
     deploy:
       replicas: 1
 
-  canvas-postgres:
+ canvas-postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
       POSTGRES_DB: canvaspdb
-    networks:
-      - pulse-network
+
     ports:
       - "5433:5432"  # Exposed PostgreSQL port
     deploy:
       replicas: 1
 
-  pulse-canvas-service:
+ pulse-canvas-service:
     image: pulse-canvas-service:latest
     ports:
       - "8080:8080"
@@ -105,15 +81,14 @@ services:
       - canvas-postgres
       - mongo
       - kafka
-    networks:
-      - pulse-network
+
     deploy:
       replicas: 2  # Adjust replicas for scaling
       resources:
         limits:
           cpus: '0.5'
           memory: 512M
-  angular-app:
+ angular-app:
     image: nginx:alpine
     container_name: angular-nginx
     ports:
@@ -122,8 +97,7 @@ services:
       - ./src/main/resources/dist/pulse-angular/:/usr/share/nginx/html:ro  # Mount dist folder as a read-only volume
       - ./nginx.conf:/etc/nginx/nginx.conf:ro   # Mount custom nginx config
     restart: always
-    networks:
-        - pulse-network
+
 
 volumes:
   postgres-data:
@@ -131,4 +105,4 @@ volumes:
 
 networks:
   pulse-network:
-    driver: overlay  # Overlay network for multi-node communication
+    driver: bridge  # Overlay network for multi-node communication

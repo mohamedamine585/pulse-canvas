@@ -9,10 +9,18 @@ import java.util.List;
 public class Artist {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     private String bio;
+    String email;
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
 
     @OneToMany(mappedBy = "artist")
     private List<CanvasPrintEdit> canvasPrintEdits;

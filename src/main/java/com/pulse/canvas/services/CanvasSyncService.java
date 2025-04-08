@@ -30,7 +30,7 @@ public class CanvasSyncService {
         kafkaTemplate.send("canvas-sync", drawEvent);
     }
 
-    @KafkaListener(topics = "canvas-sync")
+    @KafkaListener(topics = "canvas-sync",containerFactory = "drawEventKafkaListenerContainerFactory")
     public void receiveCanvasSync(DrawEvent drawEvent) {
         System.out.println("Received draw event from kafka");
         System.out.println(drawEvent.getInstanceId());

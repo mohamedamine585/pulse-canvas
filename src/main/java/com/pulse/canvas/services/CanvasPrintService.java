@@ -4,8 +4,10 @@ import com.pulse.canvas.Dtoes.CanvasPrintDTO;
 import com.pulse.canvas.Dtoes.DrawEvent;
 import com.pulse.canvas.Helper.RGBAUtils;
 import com.pulse.canvas.enums.MessageType;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -37,12 +39,16 @@ public class CanvasPrintService {
             List<Long> updatedPixelsEdits = new ArrayList<>();
 
             // TODO : Process DrawEvent
-            processDrawEvent(drawEvent, canvasPrints, updatedPixelsPostions, updatedPixelsEdits);
+            int biggestPosIndx = processDrawEvent(drawEvent, canvasPrints, updatedPixelsPostions, updatedPixelsEdits);
 
             // TODO : Sync with other instances
             canvasSyncService.sendCanvasToSync(drawEvent);
             // TODO : Broadcast to all clients
             webSocketService.broadcastCanvasPrint(drawEvent.getCanvasId(), MessageType.CANVAS_UPDATE, drawEvent.getSessionId(), updatedPixelsPostions, updatedPixelsEdits);
+
+
+
+            savePixelsUpdate(updatedPixelsPostions,updatedPixelsEdits,biggestPosIndx,Instant.now(),drawEvent.getUserId());
 
 
 
@@ -78,7 +84,7 @@ public class CanvasPrintService {
             byte[] printUpdate = new byte[biggestPosIndx * 4 + 1];
 
 
-           for(int i = 0 ; i < updatedPixelsPostions.size() ; i++) {
+           for(int i = 0 ; i < updatedPixelsPostions.size() - 3 ; i += 4) {
                 byte[] rgba = RGBAUtils.decodeRGBA(updatedPixelsEdits.get(i));
                 printUpdate[Math.toIntExact(updatedPixelsPostions.get(i))] = rgba[0];
                 printUpdate[Math.toIntExact(updatedPixelsPostions.get(i + 1))] = rgba[1];
