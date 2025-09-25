@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.sql.Timestamp;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -24,9 +23,9 @@ public class CoreService {
     @Autowired
     private CanvasPrintService canvasPrintService;
 
+
     private static final Map<Long, CanvasPrintDTO> canvasPrints = new ConcurrentHashMap<>();
     private static final ConcurrentLinkedQueue<Runnable> dbUpdates = new ConcurrentLinkedQueue<>();
-    private static final Map<Long, Timestamp> latestUpdates = new ConcurrentHashMap<>();
 
     @Scheduled(fixedRate = 5000)
     public void persistUpdates() {

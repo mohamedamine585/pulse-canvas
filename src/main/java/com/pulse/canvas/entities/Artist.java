@@ -1,5 +1,6 @@
 package com.pulse.canvas.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class Artist {
     }
 
     @OneToMany(mappedBy = "artist")
+    @JsonIgnore
     private List<CanvasPrintEdit> canvasPrintEdits;
 
     public void setCanvasPrintEdits(List<CanvasPrintEdit> canvasPrintEdits) {

@@ -4,6 +4,7 @@ import com.pulse.canvas.Dtoes.DrawEvent;
 import com.pulse.canvas.Helper.AppEventTriggers.DrawEventToSync;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -19,6 +20,7 @@ public class CanvasSyncService {
     private final ApplicationEventPublisher eventPublisher;
 
     @Autowired
+    @Qualifier("drawEventKafkaTemplate")
     private KafkaTemplate<String, DrawEvent> kafkaTemplate;
 
     public CanvasSyncService(ApplicationEventPublisher eventPublisher) {

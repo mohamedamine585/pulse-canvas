@@ -7,6 +7,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -55,6 +56,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                     .parseClaimsJws(token)
                     .getBody();
 
+
             // Additional custom validation (example)
             // if (!"expected-issuer".equals(claims.getIssuer())) {
             //     return false;
@@ -82,7 +84,6 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String token = extractToken(request);
         if (token != null && validateToken(token) && !isTokenExpired(token)) {
             Claims claims = getClaims(token);
-
             // Create the authentication object
             JwtAuthenticationToken authentication = new JwtAuthenticationToken(claims);
             SecurityContextHolder.getContext().setAuthentication(authentication);

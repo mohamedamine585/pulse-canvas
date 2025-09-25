@@ -2,17 +2,16 @@ package com.pulse.canvas.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.CanvasPrintDTO;
+import com.pulse.canvas.Dtoes.UserLiveEventDTO;
 import com.pulse.canvas.Helper.PixelMapBuilder;
-import com.pulse.canvas.Helper.jwt.JwtTokenFilter;
 import com.pulse.canvas.entities.Artist;
 import com.pulse.canvas.entities.Canvas;
 import com.pulse.canvas.entities.CanvasPrint;
 import com.pulse.canvas.enums.MessageType;
-import io.jsonwebtoken.Claims;
+import com.pulse.canvas.enums.UserEventType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
+
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -28,10 +27,10 @@ public class WebSocketService {
     private CanvasService canvasService;
 
 
-
+    @Autowired
+    private KafkaTemplate<String, UserLiveEventDTO> userEventKafkaTemplate;
 
     private static final Map<Long, Set<WebSocketSession>> canvasSessions = new ConcurrentHashMap<>();
-    private static final Map<Long, Canvas> canvasMap = new ConcurrentHashMap<>();
 
     public void addClient(WebSocketSession session, Map<Long, CanvasPrintDTO> canvasPrints) throws Exception {
         Map<String, Object> map = session.getAttributes();
@@ -46,7 +45,6 @@ public class WebSocketService {
         if(artist == null){
             return;
         }
-
         Canvas canvas = canvasService.getOrCreateCanvas(canvasId, artist);
         if(canvas == null) {
             throw new Exception("Cannot find canvas");
@@ -55,7 +53,10 @@ public class WebSocketService {
 
         session.setBinaryMessageSizeLimit(1024 * 1024 * 10);
         session.setTextMessageSizeLimit(1024 * 1024 * 10);
+
+
         canvasSessions.computeIfAbsent(canvasId, k -> new CopyOnWriteArraySet<>()).add(session);
+        userEventKafkaTemplate.send("user-events", new UserLiveEventDTO(userId, canvasId, UserEventType.USER_JOINED));
 
         byte[] print = canvasPrint.getPrint();
 
@@ -73,6 +74,7 @@ public class WebSocketService {
     public void removeClient(WebSocketSession session) {
         Long canvasId = (Long) session.getAttributes().get("canvasId");
         canvasSessions.get(canvasId).remove(session);
+        userEventKafkaTemplate.send("user-events", new UserLiveEventDTO((Long) session.getAttributes().get("userId"), canvasId, UserEventType.USER_LEFT));
         System.out.println("Client disconnected: " + session.getId());
     }
 

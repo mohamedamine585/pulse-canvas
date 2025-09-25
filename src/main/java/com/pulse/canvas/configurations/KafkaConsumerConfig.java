@@ -2,8 +2,10 @@ package com.pulse.canvas.configurations;
 
 import com.pulse.canvas.Dtoes.CreateUserEvent;
 import com.pulse.canvas.Dtoes.DrawEvent;
+import com.pulse.canvas.Dtoes.UserLiveEventDTO;
 import com.pulse.canvas.Helper.Serializers.CreateUserDeserializer;
 import com.pulse.canvas.Helper.Serializers.DrawEventDeserializer;
+import com.pulse.canvas.Helper.Serializers.UserLiveEventDTODeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,4 +67,23 @@ public class KafkaConsumerConfig {
         factory.setConsumerFactory(createUserEventConsumerFactory());
         return factory;
     }
+
+    @Bean
+    public ConsumerFactory<String, UserLiveEventDTO> userEventConsumerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServer);
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "live-events-consumer" + appInstanceId);  // Ensure the group id is set here
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, UserLiveEventDTODeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, UserLiveEventDTO> userEventKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, UserLiveEventDTO> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(userEventConsumerFactory());
+        factory.setConcurrency(2);
+        return factory;
+    }
+
 }

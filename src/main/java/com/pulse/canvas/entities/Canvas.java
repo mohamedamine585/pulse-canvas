@@ -1,5 +1,7 @@
 package com.pulse.canvas.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,10 +22,12 @@ public class Canvas {
     // Creator is an Artist, so use ManyToOne for a bidirectional relationship
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creator_id", referencedColumnName = "id", insertable = false, updatable = false)
+    @JsonBackReference
     private Artist creator;
 
 
     // One-to-one relation with CanvasPrint
+    @JsonIgnore
     @OneToOne(mappedBy = "canvas", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
     private CanvasPrint canvasPrint;
 

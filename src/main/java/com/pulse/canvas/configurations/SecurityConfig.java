@@ -25,7 +25,7 @@ public class SecurityConfig {
         http
 
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/live/canvas","/api/canvas/**").permitAll()
+                .requestMatchers("/live/**","/api/canvas/**").permitAll()
             )
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.disable());
