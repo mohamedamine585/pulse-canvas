@@ -1,6 +1,7 @@
 package com.pulse.canvas.configurations;
 
 import com.pulse.canvas.Handlers.CanvasWebSocketHandler;
+import com.pulse.canvas.Handlers.ConnectedUsersWebsocketHandler;
 import com.pulse.canvas.Handlers.LiveEventsWebSocketHandler;
 import com.pulse.canvas.Interceptors.WebSocketHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +24,14 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
     private final LiveEventsWebSocketHandler liveEventsWebSocketHandler;
-    public WebSocketConfig(CanvasWebSocketHandler canvasWebSocketHandler, WebSocketHandshakeInterceptor handshakeInterceptor, LiveEventsWebSocketHandler liveEventsWebSocketHandler) {
+
+    @Autowired
+    private final ConnectedUsersWebsocketHandler connectedUsersWebsocketHandler;
+    public WebSocketConfig(CanvasWebSocketHandler canvasWebSocketHandler, WebSocketHandshakeInterceptor handshakeInterceptor, LiveEventsWebSocketHandler liveEventsWebSocketHandler,ConnectedUsersWebsocketHandler connectedUsersWebsocketHandler) {
         this.canvasWebSocketHandler = canvasWebSocketHandler;
         this.handshakeInterceptor = handshakeInterceptor;
         this.liveEventsWebSocketHandler = liveEventsWebSocketHandler;
+        this.connectedUsersWebsocketHandler = connectedUsersWebsocketHandler;
     }
 
     @Override
@@ -34,6 +39,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry
                 .addHandler(canvasWebSocketHandler, "/live/canvas")
                 .addInterceptors(handshakeInterceptor)
+                .setAllowedOriginPatterns("*");
+
+        registry.addHandler(connectedUsersWebsocketHandler, "/live/connected-users")
                 .setAllowedOriginPatterns("*");
 
         registry.addHandler(liveEventsWebSocketHandler, "/live/events")
