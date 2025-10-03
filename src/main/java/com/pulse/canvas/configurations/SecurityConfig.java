@@ -1,41 +1,51 @@
 package com.pulse.canvas.configurations;
 
+import com.pulse.canvas.Helper.jwt.JwtTokenFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
+    JwtTokenFilter jwtAuthenticationToken() {
+        return new JwtTokenFilter();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .authorizeRequests()
-                // Allow public access to authentication and Swagger-related endpoints
-                .requestMatchers("/auth/authenticate", "/auth/register", "/auth/refresh-token", "/v2/api-docs",
-                        "/swagger-resources/**", "/swagger-ui.html", "/webjars/**", "/v3/api-docs/**",
-                        "/swagger-ui/**", "/auth/emails").permitAll()
 
-                // Secure authentication-related endpoints for users with role ADMIN_METIER
-                .requestMatchers("/auth/**").hasRole("ADMIN_METIER")
+            .authorizeHttpRequests(authorize -> authorize
+                .requestMatchers("/live/**","/api/canvas/**").permitAll()
+            )
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.disable());
 
-                // Allow all users (authenticated or not) to access /canvas WebSocket
-                .requestMatchers("/canvas/**").permitAll()  // Fix: Permit all access to WebSocket endpoint
 
-                .and()
-                .httpBasic()  // Use basic authentication for HTTP basic security
-
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)  // Stateless session configuration (for WebSockets)
-
-                .and()
-                .csrf().disable();  // Disable CSRF for WebSocket support
-
+        http.addFilterBefore(jwtAuthenticationToken(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins("http://localhost:4200")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true);
+            }
+        };
     }
 }

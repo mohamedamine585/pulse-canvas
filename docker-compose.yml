@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+
+ zookeeper:
+  image: confluentinc/cp-zookeeper:7.5.0
+  container_name: zookeeper
+  ports:
+    - "2181:2181"
+  environment:
+    ZOOKEEPER_CLIENT_PORT: 2181
+    ZOOKEEPER_TICK_TIME: 2000
+
+ kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+
+ mongo:
+    image: mongo
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+
+    deploy:
+      replicas: 1
+
+ mongo-express:
+    image: mongo-express
+    networks:
+      - pulse-network
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@pulse-galaxy-mongo:27017/
+      ME_CONFIG_BASICAUTH: 1
+      ME_CONFIG_MONGODB_DATABASE: canvasdb
+    deploy:
+      replicas: 1
+
+ postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+
+    ports:
+      - "5432:5432"  # Exposed PostgreSQL port
+    deploy:
+      replicas: 1
+
+ canvas-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: canvaspdb
+
+    ports:
+      - "5433:5432"  # Exposed PostgreSQL port
+    deploy:
+      replicas: 1
+
+ pulse-canvas-service:
+    image: pulse-canvas-service:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      - canvas-postgres
+      - mongo
+      - kafka
+
+    deploy:
+      replicas: 2  # Adjust replicas for scaling
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+ angular-app:
+    image: nginx:alpine
+    container_name: angular-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./src/main/resources/dist/pulse-angular/:/usr/share/nginx/html:ro  # Mount dist folder as a read-only volume
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro   # Mount custom nginx config
+    restart: always
+
+
+volumes:
+  postgres-data:
+    driver: local  # Use local driver for persistent storage in Swarm
+
+networks:
+  pulse-network:
+    driver: bridge  # Overlay network for multi-node communication

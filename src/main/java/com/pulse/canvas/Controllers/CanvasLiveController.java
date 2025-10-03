@@ -7,7 +7,6 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class CanvasLiveController {
 
-    // This method is triggered when a message is sent to "/app/draw"
     @MessageMapping("/draw")
     @SendTo("/topic/canvas")
     public String handleDrawMessage(String message) {

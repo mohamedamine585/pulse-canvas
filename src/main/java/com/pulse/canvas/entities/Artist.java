@@ -1,16 +1,39 @@
 package com.pulse.canvas.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.util.List;
 
 
 @Entity
 public class Artist {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String username;
     private String bio;
+    String email;
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    @OneToMany(mappedBy = "artist")
+    @JsonIgnore
+    private List<CanvasPrintEdit> canvasPrintEdits;
+
+    public void setCanvasPrintEdits(List<CanvasPrintEdit> canvasPrintEdits) {
+        this.canvasPrintEdits = canvasPrintEdits;
+    }
+
+    public List<CanvasPrintEdit> getCanvasPrintEdits() {
+        return canvasPrintEdits;
+    }
 
     // Getters and setters
     public Long getId() {

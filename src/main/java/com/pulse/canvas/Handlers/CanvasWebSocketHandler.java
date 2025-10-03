@@ -2,24 +2,20 @@ package com.pulse.canvas.Handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pulse.canvas.Dtoes.DrawEvent;
-import com.pulse.canvas.services.CanvasBroadcastService;
+import com.pulse.canvas.services.CoreService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 public class CanvasWebSocketHandler extends TextWebSocketHandler {
 
-    private final CanvasBroadcastService canvasBroadcastService;
-
-    public CanvasWebSocketHandler(CanvasBroadcastService broadcastService) {
+    private String appInstanceId;
+    private final CoreService canvasBroadcastService;
+    public CanvasWebSocketHandler(CoreService broadcastService,String appInstanceId) {
+        this.appInstanceId = appInstanceId;
         this.canvasBroadcastService = broadcastService;
     }
 
@@ -29,15 +25,16 @@ public class CanvasWebSocketHandler extends TextWebSocketHandler {
             // Handle incoming TextMessage (for example, drawing data or CanvasPrint)
             String payload = message.getPayload();
 
+
             // Process the JSON data (e.g., canvas drawing events)
             ObjectMapper objectMapper = new ObjectMapper();
             DrawEvent drawEvent = objectMapper.readValue(payload, DrawEvent.class);
-
-            System.out.println("Received draw event for canvas " + session.getAttributes().get("canvasId"));
-
+            drawEvent.setCanvasId((Long) session.getAttributes().get("canvasId"));
+            drawEvent.setUserId((Long) session.getAttributes().get("userId"));
+            drawEvent.setInstanceId(appInstanceId);
 
             // TODO : PROCESS DRAW EVENT
-            canvasBroadcastService.processUpdate(drawEvent,(Long) session.getAttributes().get("canvasId"));
+            canvasBroadcastService.processCanvasUpdate(drawEvent);
         }catch (Exception e){
             e.printStackTrace();
         }

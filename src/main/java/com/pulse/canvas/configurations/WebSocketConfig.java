@@ -1,6 +1,7 @@
 package com.pulse.canvas.configurations;
 
 import com.pulse.canvas.Handlers.CanvasWebSocketHandler;
+import com.pulse.canvas.Handlers.LiveEventsWebSocketHandler;
 import com.pulse.canvas.Interceptors.WebSocketHandshakeInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
@@ -15,20 +16,28 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 public class WebSocketConfig implements WebSocketConfigurer {
 
     @Autowired
-    private final WebSocketHandler canvasWebSocketHandler;
+    private final CanvasWebSocketHandler canvasWebSocketHandler;
 
     @Autowired
-    private final HandshakeInterceptor handshakeInterceptor;
+    private final WebSocketHandshakeInterceptor handshakeInterceptor;
 
-    public WebSocketConfig(CanvasWebSocketHandler canvasWebSocketHandler, WebSocketHandshakeInterceptor handshakeInterceptor) {
+    @Autowired
+    private final LiveEventsWebSocketHandler liveEventsWebSocketHandler;
+    public WebSocketConfig(CanvasWebSocketHandler canvasWebSocketHandler, WebSocketHandshakeInterceptor handshakeInterceptor, LiveEventsWebSocketHandler liveEventsWebSocketHandler) {
         this.canvasWebSocketHandler = canvasWebSocketHandler;
         this.handshakeInterceptor = handshakeInterceptor;
+        this.liveEventsWebSocketHandler = liveEventsWebSocketHandler;
     }
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(canvasWebSocketHandler, "/canvas")
+        registry
+                .addHandler(canvasWebSocketHandler, "/live/canvas")
                 .addInterceptors(handshakeInterceptor)
-                .setAllowedOrigins("*"); // Adjust for production security
+                .setAllowedOriginPatterns("*");
+
+        registry.addHandler(liveEventsWebSocketHandler, "/live/events")
+                .setAllowedOriginPatterns("*");
     }
+
 }

@@ -1,94 +1,96 @@
 package com.pulse.canvas.services;
 
-import com.pulse.canvas.Repositories.ArtistRepository;
-import com.pulse.canvas.Repositories.CanvasPrintRepository;
-import com.pulse.canvas.Repositories.CanvasRepository;
-import com.pulse.canvas.Repositories.JoinCanvasRepository;
+import com.pulse.canvas.Dtoes.CanvasDTO;
 import com.pulse.canvas.entities.Artist;
 import com.pulse.canvas.entities.Canvas;
 import com.pulse.canvas.entities.CanvasPrint;
-import com.pulse.canvas.entities.JoinCanvas;
+import com.pulse.canvas.Repositories.ArtistRepository;
+import com.pulse.canvas.Repositories.CanvasPrintRepository;
+import com.pulse.canvas.Repositories.CanvasRepository;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Random;
 
 @Service
 public class CanvasService {
-    @Autowired
-    private CanvasRepository canvasRepository;
-    @Autowired
-    private CanvasPrintRepository canvasPrintRepository;
 
     @Autowired
     private ArtistRepository artistRepository;
 
     @Autowired
-    private JoinCanvasRepository joinCanvasRepository;
+    private CanvasRepository canvasRepository;
 
-    @Transactional
-    public Canvas createCanvas(String name , Integer size , Long artistId) {
-        // Find the artist by ID
-        Artist artist = artistRepository.findById(artistId)
-                .orElseThrow(() -> new IllegalArgumentException("Artist not found"));
+    @Autowired
+    private CanvasPrintRepository canvasPrintRepository;
 
+    public Canvas createCanvas(CanvasDTO canvas) {
+        try {
+            System.out.println("Creating canvas");
+            final Authentication authentication =  SecurityContextHolder.getContext().getAuthentication();
+            if(authentication == null)
+                throw new Exception("Authentication is null");
+            System.out.println(authentication.getPrincipal());
+            final Claims claims = (Claims) authentication.getPrincipal();
+            final Long userId = Long.valueOf(claims.getSubject());
+            Artist artist = getOrCreateArtist(userId);
+            Canvas newCanvas = new Canvas();
+            newCanvas.setName(canvas.getCanvasName());
+            newCanvas.setCreator(artist);
+            return canvasRepository.save(newCanvas);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
 
-
-        // Create and save the new canvas
-        Canvas canvas = new Canvas();
-        canvas.setName(name);
-        canvas.setCreator(artist);
-        canvas = canvasRepository.save(canvas);
-
-        // create a print
-        CanvasPrint canvasPrint = new CanvasPrint();
-        canvasPrint.setCanvas(canvas);
-        canvasPrint.setPrint(new byte[size]);
-        canvasPrintRepository.save(canvasPrint);
-
-
-        // Optionally, you can create a JoinCanvas entity to represent the artist joining the canvas
-        JoinCanvas joinCanvas = new JoinCanvas();
-        joinCanvas.setCanvas(canvas);
-        joinCanvas.setArtist(artist);
-        joinCanvasRepository.save(joinCanvas);
-
-        return canvas;
+        }
+        return null;}
+    public List<Canvas> getCanvasesByCreator(Long creatorId) {
+        return canvasRepository.findByCreatorId(creatorId);
     }
 
-    @Transactional
-    public JoinCanvas joinCanvas(Long canvasId, Long artistId) {
-        // Find the canvas and artist by their IDs
-        Canvas canvas = canvasRepository.findById(canvasId)
-                .orElseThrow(() -> new IllegalArgumentException("Canvas not found"));
-        Artist artist = artistRepository.findById(artistId)
-                .orElseThrow(() -> new IllegalArgumentException("Artist not found"));
-
-        // Create and save a JoinCanvas entry
-        JoinCanvas joinCanvas = new JoinCanvas();
-        joinCanvas.setCanvas(canvas);
-        joinCanvas.setArtist(artist);
-        return joinCanvasRepository.save(joinCanvas);
-    }
-
-    @Transactional
     public void deleteCanvas(Long canvasId) {
-        // Check if the canvas exists
-        Canvas canvas = canvasRepository.findById(canvasId)
-                .orElseThrow(() -> new IllegalArgumentException("Canvas not found"));
-
-        // Delete the canvas (this will automatically delete related JoinCanvas entries, if cascade delete is configured)
-        joinCanvasRepository.deleteByCanvas(canvas);
-        canvasRepository.delete(canvas);
+        canvasRepository.deleteById(canvasId);
+    }
+    public Canvas getCanvas(Long canvasId) {
+        return canvasRepository.findById(canvasId).orElse(null);
+    }
+    public Artist getOrCreateArtist(Long userId) {
+        Optional<Artist> artistOptional = artistRepository.findById(userId);
+        return artistOptional.orElse(null);
     }
 
-    @Transactional
-    public Canvas updateCanvas(Long canvasId, String newName) {
-        // Find the canvas by ID
-        Canvas canvas = canvasRepository.findById(canvasId)
-                .orElseThrow(() -> new IllegalArgumentException("Canvas not found"));
+    public Canvas getOrCreateCanvas(Long canvasId, Artist artist) {
+        try {
+            Optional<Canvas> optionalCanvas = canvasRepository.findById(canvasId);
+            if (optionalCanvas.isPresent()) {
+                return optionalCanvas.get();
+            } else {
+                Canvas newCanvas = new Canvas();
+                newCanvas.setName("Canvas " + new Random().nextInt(1000));
+                newCanvas.setCreator(artist);
+                return canvasRepository.save(newCanvas);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
 
-        // Update the canvas name and save
-        canvas.setName(newName);
-        return canvasRepository.save(canvas);
+    public CanvasPrint getOrCreateCanvasPrint(Canvas canvas) {
+        CanvasPrint canvasPrint = canvasPrintRepository.findByCanvasId(canvas.getId());
+        if (canvasPrint == null) {
+            canvasPrint = new CanvasPrint();
+            canvasPrint.setCanvas(canvas);
+
+            canvasPrint.setPrint(new byte[0]);
+            return canvasPrintRepository.save(canvasPrint);
+        }
+        return canvasPrint;
     }
 }
