@@ -7,6 +7,7 @@ It enables multiple users to **draw, collaborate, and interact in real time** wi
 [![Pulse Canvas Demo](./assets/demo.gif)](https://youtu.be/p_on2nlB31o?t=81)_
 
 
+
 🚀 Tech Stack
 
 - **Frontend:** Angular 17 (TypeScript, Tailwind, WebSockets integration)  
