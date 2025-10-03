@@ -70,6 +70,16 @@ You can run the **entire stack locally** using Docker Compose.
 ### Steps
 
 ```bash
+
+# Run the whole infra stack
+git clone https://github.com/mohamedamine585/pulse-canvas.git
+cd pulse-canvas
+docker-compose up --build
+
+# Clone auth repo
+git clone https://github.com/mohamedamine585/auth.git
+nest start
+
 # Clone repository
 git clone https://github.com/mohamedamine585/pulse-canvas.git
 cd pulse-canvas
@@ -78,10 +88,7 @@ cd pulse-canvas
 mvn clean install -DskipTests
 
 # Build frontend
-cd frontend
+git clone https://github.com/mohamedamine585/pulse-client.git
+cd pulse-frontend/pulse-angular
 npm install
-npm run build
-cd ..
-
-# Run the whole stack
-docker-compose up --build
+ng serve
