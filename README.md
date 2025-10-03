@@ -4,8 +4,10 @@
 It enables multiple users to **draw, collaborate, and interact in real time** with optimized bandwidth usage and scalable event-driven design.
 
 ---
-https://www.youtube.com/watch?v=p_on2nlB31o&t=69s
-## 🚀 Tech Stack
+<iframe width="560" height="315" src="https://www.youtube.com/embed/p_on2nlB31o?start=69" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>##
+
+
+🚀 Tech Stack
 
 - **Frontend:** Angular 17 (TypeScript, Tailwind, WebSockets integration)  
 - **Backend:** Java 17 + Spring Boot microservices  
