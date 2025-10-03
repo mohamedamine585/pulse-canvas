@@ -41,17 +41,21 @@ public class ConnectedUsersWebsocketHandler implements WebSocketHandler {
     private void handleUserConnectedEvent(ConnectedUserDTO connectedUserDTO) {
 
         // Send event to all sessions for the canvas
-        clients.getOrDefault(connectedUserDTO.getCanvasId(), List.of())
+          clients.getOrDefault(connectedUserDTO.getCanvasId(), List.of())
                 .forEach(session -> sendUserConnectedToClients(session, connectedUserDTO));
         List<ConnectedUserDTO> usersList = connectedUsers.computeIfAbsent(connectedUserDTO.getCanvasId(), k -> new java.util.concurrent.CopyOnWriteArrayList<>());
         if (usersList.stream().noneMatch(user -> user.getUserId().equals(connectedUserDTO.getUserId()))) {
             usersList.add(connectedUserDTO);
         }
+
     }
 
     private void sendUserConnectedToClients(WebSocketSession session, ConnectedUserDTO connectedUserDTO) {
         try {
-            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(connectedUserDTO)));
+            if(session.isOpen()){
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(connectedUserDTO)));
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
