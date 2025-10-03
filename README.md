@@ -51,8 +51,17 @@ Pulse Canvas is designed to scale efficiently with many simultaneous collaborato
 - **Bandwidth optimization** → RGBA data combined into a single compact payload stream.  
 - **Memory efficiency** → Canvas Service tuned for reduced memory consumption (object pooling, serialization optimization).  
 - **Parallel event handling** → Kafka + ForkJoinPool for scalable event distribution.  
-- **Event batching** → Similar drawing events can be combined to minimize network overhead.  
 
+---
+🔧 Areas of Improvement
+
+While Pulse Canvas is fully functional, there are several areas where the platform can be enhanced to improve performance and user experience:
+
+Memory Consumption → Further optimization of the Canvas Service to reduce memory usage, especially with large or multiple simultaneous canvases.
+
+User Interaction Features → Adding richer collaboration tools such as comments, reactions, and real-time annotations.
+
+User Invitation Feature → Implementing a system to invite users to specific canvases or sessions, with roles and permissions.
 ---
 
 ## 🐳 Running with Docker
