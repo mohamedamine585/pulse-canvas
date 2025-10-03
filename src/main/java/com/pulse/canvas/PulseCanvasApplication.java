@@ -8,7 +8,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-public class PulseCanvasApplication {
+public class
+    PulseCanvasApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(PulseCanvasApplication.class, args);
