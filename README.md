@@ -76,6 +76,9 @@ git clone https://github.com/mohamedamine585/pulse-canvas.git
 cd pulse-canvas
 docker-compose up --build
 
+# Clone auth repo
+git clone https://github.com/mohamedamine585/auth.git
+nest start
 
 # Clone repository
 git clone https://github.com/mohamedamine585/pulse-canvas.git
