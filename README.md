@@ -30,7 +30,7 @@ Here’s a short demo video of **Pulse Canvas** in action:
 ---
 
 ## 🏗️ Architecture
-![Architecture Diagram](./architecture.png)
+![Architecture Diagram](./assets/architecture.png)
 The system follows a **modular microservices architecture** with Kafka-driven communication and Redis for fast in-memory state sharing.
 
 ### 🛠️ Services Overview
