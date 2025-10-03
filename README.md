@@ -4,7 +4,7 @@
 It enables multiple users to **draw, collaborate, and interact in real time** with optimized bandwidth usage and scalable event-driven design.
 
 ---
-
+https://www.youtube.com/watch?v=p_on2nlB31o&t=69s
 ## 🚀 Tech Stack
 
 - **Frontend:** Angular 17 (TypeScript, Tailwind, WebSockets integration)  
@@ -31,6 +31,7 @@ Here’s a short demo video of **Pulse Canvas** in action:
 
 ## 🏗️ Architecture
 ![Architecture Diagram](./assets/architecture.png)
+
 The system follows a **modular microservices architecture** with Kafka-driven communication and Redis for fast in-memory state sharing.
 
 ### 🛠️ Services Overview
