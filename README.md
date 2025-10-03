@@ -4,7 +4,8 @@
 It enables multiple users to **draw, collaborate, and interact in real time** with optimized bandwidth usage and scalable event-driven design.
 
 ---
-<iframe width="560" height="315" src="https://www.youtube.com/embed/p_on2nlB31o?start=69" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+[![Pulse Canvas Demo](./assets/demo.gif)](https://youtu.be/p_on2nlB31o?t=81)_
+
 
 
 🚀 Tech Stack
@@ -21,15 +22,6 @@ It enables multiple users to **draw, collaborate, and interact in real time** wi
 
 ---
 
-## 🎥 Demo
-
-Here’s a short demo video of **Pulse Canvas** in action:  
-
-[![Pulse Canvas Demo](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)  
-
-*(Replace `VIDEO_ID` with your actual YouTube video link. If you want to embed a local demo GIF instead, add it under `/docs/demo.gif` and link it here.)*
-
----
 
 ## 🏗️ Architecture
 ![Architecture Diagram](./assets/architecture.png)
